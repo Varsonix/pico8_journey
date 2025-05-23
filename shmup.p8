@@ -268,12 +268,6 @@ function draw_over()
 	print("press ❎ to restart", 27, 80, blink())
 end
 
-function draw_objects(object)
-	for item in all(object) do
-		spr(item.spr, item.x, item.y)
-	end
-end
-
 --[[ current project:
 
 think about how to make
@@ -301,6 +295,12 @@ end
 
 function draw_sprite(object)
 	spr(object.spr, object.x, object.y)
+end
+
+function draw_objects(object)
+	for item in all(object) do
+		draw_sprite(item)
+	end
 end
 
 -- trying to make generic
