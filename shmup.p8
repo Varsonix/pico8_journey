@@ -165,35 +165,15 @@ function update_game()
 		ship.muzzle = 5
 	end
 	
-
-	-- moving the ship
+	-- move ship
 	ship.x += ship.spdx
 	ship.y += ship.spdy
 	
-	-- moving the bullet(s)
-	for i=#bullets,1,-1 do
-		local my_bullet = bullets[i]
-		my_bullet.y -= 4
-		
-		if my_bullet.y < - 10 then
-			del(bullets, my_bullet)
-		end
-	end
-	
-		-- moving the enemies(s)
-	
-	for my_enemy in all(enemies) do
-		my_enemy.y += 1
-		my_enemy.spr += 0.4
-		-- animate logic 
-		if my_enemy.spr > 24 then
-			my_enemy.spr = 20
-		end
-		-- memory logic
-		if my_enemy.y < - 10 then
-			del(enemies, my_enemy)
-		end
-	end
+	-- move bullets
+ update_bullets(bullets)
+
+	-- move enemies
+	update_enemies(enemies)	
 	
 	-- animate thruster
 	animate_thrusters()
@@ -221,6 +201,56 @@ end
 function update_over()
 	if btnp(❎) then
 		game.mode = "start"
+	end
+end
+
+--[[
+project:
+
+i don't think it's possible
+but i'd like to see if i can
+figure out a way to make a
+generic enough function for
+updating the movement of an
+object as well...
+
+i may need to trim fat
+in order to do so though.
+we'll see... 
+
+my goal is to be able to just
+have the one function
+
+update_objects(ship)
+update_objects(bullets)
+update_objects(enemies)
+
+that might be asking too much.
+but chew on it for a bit.
+--]]
+
+function update_bullets(object)
+	for bullet in all(object) do
+		bullet.y -= 4
+		
+		if bullet.y < -10 then
+			del(object, bullet)
+		end
+	end
+end
+
+function update_enemies(object)
+	for my_enemy in all(object) do
+		my_enemy.y += 1
+		my_enemy.spr += 0.4
+		-- animate logic 
+		if my_enemy.spr > 24 then
+			my_enemy.spr = 20
+		end
+		-- memory logic
+		if my_enemy.y < - 10 then
+			del(object, my_enemy)
+		end
 	end
 end
 -->8
@@ -252,6 +282,7 @@ function draw_game()
 	for i=1,game.bombs do
 		spr(29,127-i*9, 2)
 	end
+	
 end
 
 function draw_start()
