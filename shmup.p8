@@ -49,7 +49,7 @@ function start_game()
 	ship.spdy=0
 	ship.boostspr = 4
 
-
+	timer = 0
 	-- bullets holding bay
 	bullets = {}
 	
@@ -185,16 +185,21 @@ function update_game()
 	end
 	
 	-- shooting
-	if btnp(❎) then
-		local new_bullet = {}
-		new_bullet.x = ship.x
-		new_bullet.y = ship.y
-		new_bullet.spd = ship.spd
-		new_bullet.spr = 16
-		add(bullets, new_bullet)	
-		sfx(0)
-		ship.muzzle = 5
+	if btn(❎) then
+		
+		if timer <= 0 then
+			local new_bullet = {}
+			new_bullet.x = ship.x
+			new_bullet.y = ship.y
+			new_bullet.spd = ship.spd
+			new_bullet.spr = 16
+			add(bullets, new_bullet)	
+			sfx(0)
+			ship.muzzle = 5
+			timer = 4
+		end
 	end
+	timer -= 1
 	
 	-- move ship
 	ship.x += ship.spdx
