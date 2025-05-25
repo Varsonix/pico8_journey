@@ -67,7 +67,7 @@ function start_game()
 	game = {
 		mode = "game",
 		score = flr(rnd(128)),
-		lives = 4,
+		lives = 1,
 		bombs = 3
 	}
 end
@@ -127,6 +127,37 @@ function blink()
 	
 	return blink_ani[blink_timer]
 end
+
+
+function collision(a, b)
+	-- lots of math
+	-- a = enemy / b = ship
+	-- practice vars
+	local a_left = a.x
+	local a_top = a.y
+	local a_right = a.x + 7
+	local a_bottom = a.y + 7
+	
+	local b_left = b.x
+	local b_top = b.y
+	local b_right = b.x + 7
+	local b_bottom = b.y + 7
+	
+	if a_top > b_bottom then return false end
+	if b_top > a_bottom then return false end
+	if a_left > b_right then return false end
+	if b_left > a_right then return false end
+	
+	return true
+end
+
+-- other method (will factor in)
+--function rect_rect_collision( r1, r2 )
+--  return r1.x < r2.x+r2.w and
+--         r1.x+r1.w > r2.x and
+--         r1.y < r2.y+r2.h and
+--         r1.y+r1.h > r2.y
+--end
 -->8
 -- update functions
 
@@ -175,6 +206,15 @@ function update_game()
 	-- move enemies
 	update_enemies(enemies)	
 	
+	-- ship x enemy collision
+	for enemy in all(enemies) do
+		if collision(enemy, ship) then
+			game.lives -= 1
+			sfx(1)
+			del(enemies, enemy)
+		end
+	end
+	
 	-- animate thruster
 	animate_thrusters()
 	
@@ -189,6 +229,9 @@ function update_game()
 
 	-- animate stars
 	animate_stars()
+	if game.lives <= 0 then
+		game.mode = "over"
+	end
 end
 
 function update_start()
@@ -253,6 +296,8 @@ function update_enemies(object)
 		end
 	end
 end
+
+
 -->8
 -- draw functions
 
@@ -368,3 +413,4 @@ __gfx__
 00300300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __sfx__
 00010000305502c54027530225201d510195101751019700147000c7000b7001700014000100000e0000b00007000050000000000000000000000000000000000000000000000000000000000000000000000000
+00010000256102b6102f6102d6102961024610216101e6101b6101a61018610146100f6100c6100961006610066101d6001d6001c6001c6001d6001e6001f6002060020600226002360027600296002c6002e600
