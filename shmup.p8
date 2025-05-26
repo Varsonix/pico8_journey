@@ -1,12 +1,17 @@
 pico-8 cartridge // http://www.pico-8.com
 version 42
 __lua__
+-- todo
+-- -explosions
+-- -hit reactions
+
 function _init()
 	cls(0)
 	-- create stars for start
 	generate_stars()
 	game = {mode="start"}
 	blink_timer = 0
+	t = 0
 end
 
 function _update()
@@ -56,18 +61,16 @@ function start_game()
 	-- enemies holding bay
 	enemies = {}
 	
-	local my_enemy = {}
-	my_enemy.x = 60
-	my_enemy.y = 35
-	my_enemy.spr = 20
+	spawn_enemy()
 	
-	add(enemies, my_enemy)
+	t=0
 		
 	-- general game variables
 	game = {
 		mode = "game",
 		score = flr(rnd(128)),
-		lives = 1,
+		lives = 4,
+		invuln = 0,
 		bombs = 3
 	}
 end
@@ -158,11 +161,21 @@ end
 --         r1.y < r2.y+r2.h and
 --         r1.y+r1.h > r2.y
 --end
+
+function spawn_enemy()
+	local	enemy = {}
+	enemy.x = flr(rnd(120))
+	enemy.y = -8
+	enemy.spr = 20
+	
+	add(enemies, enemy)
+end
 -->8
 -- update functions
 
 -- primary game loop
 function update_game()
+	t += 1
 	-- stop when not pressing
 	ship.spdx = 0
 	ship.spdy = 0
@@ -202,6 +215,8 @@ function update_game()
 	timer -= 1
 	
 	-- move ship
+	-- todo: remember to fix
+	-- sprite issue with left/right
 	ship.x += ship.spdx
 	ship.y += ship.spdy
 	
@@ -211,13 +226,34 @@ function update_game()
 	-- move enemies
 	update_enemies(enemies)	
 	
-	-- ship x enemy collision
+	-- bullet x enemy collision
+	-- check prior to ship x enemy
 	for enemy in all(enemies) do
-		if collision(enemy, ship) then
-			game.lives -= 1
-			sfx(1)
-			del(enemies, enemy)
+		for bullet in all(bullets) do
+			if collision(enemy, bullet) then
+				del(enemies, enemy)
+				del(bullets, bullet)
+				sfx(2)
+				spawn_enemy()
+				game.score +=1
+			end
 		end
+	end
+	
+	-- ship x enemy collision
+	-- new invuln logic added*
+	game.invuln -= 1
+	if game.invuln <= 0 then
+		for enemy in all(enemies) do
+			if collision(enemy, ship) then
+				game.lives -= 1
+				sfx(1)
+				game.invuln = 60
+				--del(enemies, enemy)
+			end
+		end
+	else
+		game.invuln -= 1
 	end
 	
 	-- animate thruster
@@ -296,8 +332,9 @@ function update_enemies(object)
 			my_enemy.spr = 20
 		end
 		-- memory logic
-		if my_enemy.y < - 10 then
+		if my_enemy.y > 128 then
 			del(object, my_enemy)
+			spawn_enemy()
 		end
 	end
 end
@@ -310,7 +347,19 @@ end
 function draw_game()
 	cls(0)
 	star_field() --generate stars
-	draw_ship(ship) -- draw ship
+	
+	-- handle blinking invuln
+	if game.invuln <= 0 then
+		draw_ship(ship)
+	else
+		-- during invuln
+		if sin(t/5) < 0.1 then
+			draw_ship(ship) 
+		end
+	end
+	
+	
+	
 	draw_objects(bullets) -- bullets
 	draw_objects(enemies) -- enemies
 	
@@ -419,3 +468,4 @@ __gfx__
 __sfx__
 00010000305502c54027530225201d510195101751019700147000c7000b7001700014000100000e0000b00007000050000000000000000000000000000000000000000000000000000000000000000000000000
 00010000256102b6102f6102d6102961024610216101e6101b6101a61018610146100f6100c6100961006610066101d6001d6001c6001c6001d6001e6001f6002060020600226002360027600296002c6002e600
+00010000387300962032530226300f620085200862007620056100461001610006200040000400006000062000400016000040000630004000260000400006300060000400006201b60000400004000360000400
