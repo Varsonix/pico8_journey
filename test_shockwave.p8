@@ -1,0 +1,70 @@
+pico-8 cartridge // http://www.pico-8.com
+version 42
+__lua__
+-- basics
+function _init()
+	-- initialize shockwaves
+	shockwaves = {}
+end
+
+function _update()
+	-- press x for circle
+	if btnp(❎) then
+		nshock = {
+		x = flr(rnd(127)),
+		y = flr(rnd(127)),
+		r = 0,
+		rspd = 3.5,
+		col = 7,
+		timer = 0,
+		}
+		-- add that new circle
+		add(shockwaves, nshock)
+	end
+	
+	for shock in all(shockwaves) do
+		shock.r += shock.rspd
+		shock.timer += 1
+		shock.rspd *= 0.9
+		if shock.timer > 5 then
+			shock.col = 7
+		end
+		if shock.timer > 7 then
+			shock.col = 10
+		end
+		if shock.timer > 10 then
+			shock.col = 9
+		end
+		if shock.timer > 12 then
+			shock.col = 8
+		end
+		if shock.timer > 15 then
+			shock.col = 2
+		end
+		if shock.timer > 18 then
+			shock.col = 5
+		end
+		if shock.timer >= 25 then
+			del(shockwaves, shock)
+		end
+	end
+	
+end
+
+function _draw()
+	cls(1)
+	
+	-- just to debug
+	print(#shockwaves, 5, 5)
+	
+	for shock in all(shockwaves) do
+		circ(shock.x, shock.y, shock.r, shock.col)
+	end
+end
+__gfx__
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00700700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00077000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00077000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00700700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
