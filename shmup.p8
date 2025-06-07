@@ -528,6 +528,44 @@ function draw_enemies(object)
 	end
 end
 
+--[[
+experimental function idea:
+----  do not use yet  ----
+
+this new idea will require a
+new type of property added
+to every object i would draw
+so i can identify and proceed
+accordingly.
+
+there are two ways to think:
+
+1. focus on just the object included
+- this allows us to check object.type
+  to see if it is a ship or bullet
+  and then draw accordingly
+
+2. focus on both object and it's type.
+- this is to see if we can handle
+  being passed in an object of objects.
+  can this function co-exist with
+  a ship, but also a group of enemies?
+]]--
+
+function experimental(object, obj_type)
+
+	if obj_type == "ship" then
+		-- draw the ship
+	elseif obj_type == "enemy" then
+		-- run the draw_enemies style
+	elseif obj_type == "bullet" then
+	 -- draw bullet
+	else
+		-- draw generic sprite
+	end
+end
+
+
 -- trying to make generic
 function muzzle_flash(object)
 	if object.muzzle > 0 then
