@@ -2,7 +2,6 @@ pico-8 cartridge // http://www.pico-8.com
 version 42
 __lua__
 -- todo
--- - procedural explosions
 -- - bullet collision fx
 
 function _init()
@@ -52,9 +51,9 @@ function start_game()
 	ship.muzzle=0
 	ship.spdx=0
 	ship.spdy=0
-	ship.boostspr = 4
+	ship.boostspr=4
 
-	timer = 0
+	timer=0
 	-- bullets holding bay
 	bullets = {}
 	
@@ -63,7 +62,7 @@ function start_game()
 	
 	-- explosions holding bay
 	explosions = {}
-	
+	shockwaves = {}
 	particles = {}
 	
 	for i=0,3 do
@@ -71,7 +70,7 @@ function start_game()
 	end
 	
 	t=0
-		
+
 	-- general game variables
 	game = {
 		mode = "game",
@@ -140,34 +139,13 @@ function blink()
 	return blink_ani[blink_timer]
 end
 
--- basic collision system
--- (rectangle based)
-function collision(a, b)
-	local a_left = a.x
-	local a_top = a.y
-	local a_right = a.x + 7
-	local a_bottom = a.y + 7
-	
-	local b_left = b.x
-	local b_top = b.y
-	local b_right = b.x + 7
-	local b_bottom = b.y + 7
-	
-	if a_top > b_bottom then return false end
-	if b_top > a_bottom then return false end
-	if a_left > b_right then return false end
-	if b_left > a_right then return false end
-	
-	return true
-end
-
 -- other method (will factor in)
---function rect_rect_collision( r1, r2 )
---  return r1.x < r2.x+r2.w and
---         r1.x+r1.w > r2.x and
---         r1.y < r2.y+r2.h and
---         r1.y+r1.h > r2.y
---end
+function collision(a, b)
+  return a.x < b.x+7 and
+         a.x+7 > b.x and
+         a.y < b.y+7 and
+         a.y+7 > b.y
+end
 
 function spawn_enemy()
 	local	enemy = {}
@@ -195,6 +173,15 @@ function explode(expx, expy)
 		}
 		add(particles,my_particle)
 	end
+	-- get the shockwave ready
+	local my_shockwave = {
+	x = expx,
+	y = expy,
+ r = 0,
+ spdr = 2.5,
+ age = 0
+	}
+	add(shockwaves,my_shockwave)
 	
 	-- start with one big one
 	local my_particle = {
@@ -224,6 +211,14 @@ handle the particle system
 for the player, but go with a
 blue / white scheme for color
 
+project 3:
+considering the new shockwave
+system, is there a way to 
+handle it within the same
+particle system, or would it
+need to stay separate due to the
+difference in movement rather
+than radius gain.
 --]]
 -->8
 -- update functions
@@ -388,7 +383,7 @@ function update_enemies(object)
 	for my_enemy in all(object) do
 		my_enemy.y += 1
 		my_enemy.spr += 0.4
-		-- animate logic 
+		-- animate logic
 		if my_enemy.spr > 24 then
 			my_enemy.spr = 20
 		end
@@ -428,6 +423,7 @@ function draw_game()
 	
 	-- drawing particles
 	particle_system()
+	shockwave_system()
 
 
 
@@ -540,6 +536,45 @@ prototype for the particle
 explosion system
 (can use in other projects)
 --]]
+
+-- start with a separated system
+function shockwave_system()
+	for my_shockwave in all(shockwaves) do
+		shock_c = 5
+		
+		if my_shockwave.age > 5 then
+			shock_c = 7
+		end
+		if my_shockwave.age > 7 then
+			shock_c = 10
+		end
+		if my_shockwave.age > 10 then
+			shock_c = 9
+		end
+		if my_shockwave.age > 12 then
+			shock_c = 8
+		end
+		if my_shockwave.age > 15 then
+			shock_c = 2
+		end
+		if my_shockwave.age > 18 then
+			shock_c = 5
+		end
+		if my_shockwave.age > 25 then
+			del(shockwaves, my_shockwave)
+		end
+		
+		-- draw shockwave
+		circ(my_shockwave.x, my_shockwave.y, my_shockwave.r, shock_c)
+		
+		-- radius increase
+		my_shockwave.r += my_shockwave.spdr
+	 -- particle friction physics
+	 my_shockwave.spdr *= 0.9
+	 -- particle timer
+	 my_shockwave.age += 1
+	end
+end
 
 function particle_system()
 	-- loop through particles
