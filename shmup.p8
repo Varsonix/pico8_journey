@@ -410,7 +410,7 @@ function draw_game()
 	else
 		-- during invuln
 		if sin(t/5) < 0.1 then
-			draw_ship(ship) 
+			draw_ship(ship)
 		end
 	end
 	
@@ -445,7 +445,9 @@ function draw_game()
 		spr(29,127-i*9, 2)
 	end
 	
-	print(#particles, 5, 5)
+	-- debugging printers
+	print(#particles, 3, 10)
+	print(#shockwaves, 3, 16)
 end
 
 function draw_start()
@@ -490,6 +492,20 @@ end
 function draw_sprite(object)
 	spr(object.spr, object.x, object.y)
 end
+
+--|-- token differences --|
+--|  original method: 34  |
+--|  new method: 37 in 1  |
+--|-----------------------|
+
+--function token_check(object)
+--	if object.type == "ship" then
+--		spr(ship.spr, ship.x, ship.y)
+--		spr(ship.boostspr, ship.x, ship.y + 8)
+--	else
+--		spr(object.spr, object.x, object.y)
+--	end
+--end
 
 function draw_objects(object)
 	for item in all(object) do
