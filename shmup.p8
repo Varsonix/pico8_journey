@@ -162,7 +162,7 @@ end
 
 -- explosion system
 -- with particles
-function explode(expx, expy)
+function explode(expx, expy, isblue)
 	for i=1,30 do
 		local my_particle = {
 		x = expx,
@@ -171,7 +171,8 @@ function explode(expx, expy)
 		spdy = (rnd()-0.5) * 6,
 		age = rnd(2),
 		size = 1 + rnd(4),
-		maxage = 10 + rnd(10)
+		maxage = 10 + rnd(10),
+		blue = isblue
 		}
 		add(particles,my_particle)
 	end
@@ -181,7 +182,8 @@ function explode(expx, expy)
 	y = expy,
  r = 0,
  spdr = 2.5,
- age = 0
+ age = 0,
+ blue = isblue
 	}
 	add(shockwaves,my_shockwave)
 	
@@ -193,7 +195,8 @@ function explode(expx, expy)
 	spdy = 0,
 	age = 0,
 	size = 10,
-	maxage = 0
+	maxage = 0,
+	blue = isblue
 	}
 	add(particles, my_particle)
 end
@@ -215,6 +218,28 @@ function red_page(page)
 	end
 	if page > 15 then
 		col = 5
+	end
+	
+	return col
+end
+
+function blue_page(page)
+	local col = 7
+	
+	if page > 5 then
+		col = 6
+	end
+	if page > 7 then
+		col = 12
+	end
+	if page > 10 then
+		col = 13
+	end
+	if page > 12 then
+		col = 1
+	end
+	if page > 15 then
+		col = 1
 	end
 	
 	return col
@@ -326,7 +351,7 @@ function update_game()
 	if game.invuln <= 0 then
 		for enemy in all(enemies) do
 			if collision(enemy, ship) then
-				explode(ship.x + 4, ship.y + 4)
+				explode(ship.x + 4, ship.y + 4, true)
 				game.lives -= 1
 				sfx(1)
 				game.invuln = 60
@@ -619,26 +644,32 @@ explosion system
 -- start with a separated system
 function shockwave_system()
 	for my_shockwave in all(shockwaves) do
-		shock_c = 5
+		local shock_c = 7
 		
-		if my_shockwave.age > 5 then
-			shock_c = 7
+		if my_shockwave.blue then
+			shock_c = blue_page(my_shockwave.age)
+		else
+			shock_c = red_page(my_shockwave.age)
 		end
-		if my_shockwave.age > 7 then
-			shock_c = 10
-		end
-		if my_shockwave.age > 10 then
-			shock_c = 9
-		end
-		if my_shockwave.age > 12 then
-			shock_c = 8
-		end
-		if my_shockwave.age > 15 then
-			shock_c = 2
-		end
-		if my_shockwave.age > 18 then
-			shock_c = 5
-		end
+		
+--		if my_shockwave.age > 5 then
+--			shock_c = 7
+--		end
+--		if my_shockwave.age > 7 then
+--			shock_c = 10
+--		end
+--		if my_shockwave.age > 10 then
+--			shock_c = 9
+--		end
+--		if my_shockwave.age > 12 then
+--			shock_c = 8
+--		end
+--		if my_shockwave.age > 15 then
+--			shock_c = 2
+--		end
+--		if my_shockwave.age > 18 then
+--			shock_c = 5
+--		end
 		if my_shockwave.age > 25 then
 			del(shockwaves, my_shockwave)
 		end
@@ -659,7 +690,13 @@ function particle_system()
 	-- loop through particles
 	for my_particle in all(particles) do
 		-- handle coloring
-		local part_c = red_page(my_particle.age)
+		local part_c = 7
+		
+		if my_particle.blue then
+			part_c = blue_page(my_particle.age)
+		else
+			part_c = red_page(my_particle.age)
+		end
 		
 		-- draw the actual particle
 		circfill(my_particle.x, my_particle.y, my_particle.size, part_c)
