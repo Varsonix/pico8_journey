@@ -751,7 +751,7 @@ function particle_system()
 		
 		-- draw the actual particle
 		if my_particle.spark then
-			pset(my_particle.x, my_particle.y, 7)
+			pset(my_particle.x, my_particle.y, part_c)
 		else
 			circfill(my_particle.x, my_particle.y, my_particle.size, part_c)
 		end
