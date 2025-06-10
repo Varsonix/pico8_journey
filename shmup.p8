@@ -1,10 +1,17 @@
 pico-8 cartridge // http://www.pico-8.com
 version 42
 __lua__
--- todo
--- - ship explosion fx
--- - bullet collision fx
--- - maybe sparks?
+--[[
+
+todo:
+-------------------
+- game flow
+- music (hell yeah)
+- multiple enemies
+- big enemies
+- enemy bullets
+
+]]--
 
 function _init()
 	cls(0)
@@ -65,7 +72,9 @@ function start_game()
 	-- explosions holding bay
 	explosions = {}
 	shockwaves = {}
+	smol_waves = {}
 	particles = {}
+	
 	
 	for i=0,3 do
 		spawn_enemy()
@@ -163,6 +172,7 @@ end
 -- explosion system
 -- with particles
 function explode(expx, expy, isblue)
+	-- circle particles
 	for i=1,30 do
 		local my_particle = {
 		x = expx,
@@ -173,6 +183,22 @@ function explode(expx, expy, isblue)
 		size = 1 + rnd(4),
 		maxage = 10 + rnd(10),
 		blue = isblue
+		}
+		add(particles,my_particle)
+	end
+	
+	-- spark particles
+	for i=1,20 do
+		local my_particle = {
+		x = expx,
+		y = expy,
+		spdx = (rnd()-0.5) * 10,
+		spdy = (rnd()-0.5) * 10,
+		age = rnd(2),
+		size = 1 + rnd(4),
+		maxage = 10 + rnd(10),
+		blue = isblue,
+		spark = true
 		}
 		add(particles,my_particle)
 	end
@@ -199,6 +225,18 @@ function explode(expx, expy, isblue)
 	blue = isblue
 	}
 	add(particles, my_particle)
+end
+
+function smol_wave(smol_x,smol_y)
+	local my_swave = {
+	x = smol_x,
+	y = smol_y,
+	r = 3,
+	tr = 6,
+	col = 9
+	}
+	
+	add(smol_waves, my_swave)
 end
 
 function red_page(page)
@@ -243,6 +281,24 @@ function blue_page(page)
 	end
 	
 	return col
+end
+
+function smol_spark(sx, sy)
+	-- spark particles
+	--for i=1,2 do
+		local my_particle = {
+		x = sx,
+		y = sy,
+		spdx = (rnd()-0.5) * 8,
+		spdy = (rnd()-1) * 3,
+		age = rnd(2),
+		size = 1 + rnd(4),
+		maxage = 10 + rnd(10),
+		blue = isblue,
+		spark = true
+		}
+		add(particles,my_particle)
+	--end
 end
 
 --[[
@@ -331,6 +387,8 @@ function update_game()
 		for bullet in all(bullets) do
 			if collision(enemy, bullet) then
 				del(bullets, bullet)
+				smol_wave(bullet.x + 4, bullet.y + 4)
+				smol_spark(enemy.x + 4, enemy.y + 4)
 				enemy.health -= 1
 				sfx(3)
 				enemy.flash = 1
@@ -472,6 +530,7 @@ function draw_game()
 	muzzle_flash(ship) -- muzzle logic
 	
 	-- drawing particles
+	draw_smolwaves()
 	particle_system()
 	shockwave_system()
 
@@ -652,24 +711,6 @@ function shockwave_system()
 			shock_c = red_page(my_shockwave.age)
 		end
 		
---		if my_shockwave.age > 5 then
---			shock_c = 7
---		end
---		if my_shockwave.age > 7 then
---			shock_c = 10
---		end
---		if my_shockwave.age > 10 then
---			shock_c = 9
---		end
---		if my_shockwave.age > 12 then
---			shock_c = 8
---		end
---		if my_shockwave.age > 15 then
---			shock_c = 2
---		end
---		if my_shockwave.age > 18 then
---			shock_c = 5
---		end
 		if my_shockwave.age > 25 then
 			del(shockwaves, my_shockwave)
 		end
@@ -686,6 +727,16 @@ function shockwave_system()
 	end
 end
 
+function draw_smolwaves()
+	for mysw in all(smol_waves) do
+		circ(mysw.x, mysw.y, mysw.r, mysw.col)
+		mysw.r += 1
+		if mysw.r > mysw.tr then
+			del(smol_waves, mysw)
+		end
+	end
+end
+
 function particle_system()
 	-- loop through particles
 	for my_particle in all(particles) do
@@ -699,8 +750,11 @@ function particle_system()
 		end
 		
 		-- draw the actual particle
-		circfill(my_particle.x, my_particle.y, my_particle.size, part_c)
-		
+		if my_particle.spark then
+			pset(my_particle.x, my_particle.y, 7)
+		else
+			circfill(my_particle.x, my_particle.y, my_particle.size, part_c)
+		end
 		-- particle movement
 		my_particle.x += my_particle.spdx
 		my_particle.y += my_particle.spdy	
