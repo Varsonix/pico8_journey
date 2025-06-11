@@ -28,8 +28,12 @@ function _update()
 		update_game()
 	elseif game.mode == "start" then
 		update_start()
+	elseif game.mode == "wavetext" then
+		update_wavetext()
 	elseif game.mode == "over" then
 		update_over()
+	elseif game.mode == "victory" then
+		update_victory()
 	end
 end
 
@@ -38,8 +42,12 @@ function _draw()
 		draw_game()
 	elseif game.mode == "start" then
 		draw_start()
+	elseif game.mode == "wavetext" then
+		draw_wavetext()
 	elseif game.mode == "over" then
 		draw_over()
+	elseif game.mode == "victory" then
+		draw_victory()
 	end
 end
 
@@ -69,27 +77,29 @@ function start_game()
 	-- enemies holding bay
 	enemies = {}
 	
-	-- explosions holding bay
+	-- particle system holding bay
 	explosions = {}
 	shockwaves = {}
 	smol_waves = {}
 	particles = {}
 	
 	
-	for i=0,3 do
-		spawn_enemy()
-	end
+
 	
 	t=0
 
 	-- general game variables
 	game = {
-		mode = "game",
+		mode = "wavetext",
 		score = flr(rnd(128)),
 		lives = 4,
 		invuln = 0,
-		bombs = 3
+		bombs = 3,
+		wave = 0,
+		wavetime = 80
 	}
+	
+	next_wave()
 end
 
 
@@ -395,9 +405,12 @@ function update_game()
 				if enemy.health <= 0 then
 					del(enemies, enemy)
 					sfx(2)
-					spawn_enemy()
 					game.score +=1
 					explode(enemy.x + 4, enemy.y + 4)
+					
+					if #enemies == 0 then
+						next_wave()
+					end
 				end	
 			end
 		end
@@ -414,6 +427,7 @@ function update_game()
 				sfx(1)
 				game.invuln = 60
 				--del(enemies, enemy)
+				--spawn_enemy()
 			end
 		end
 	else
@@ -440,42 +454,45 @@ function update_game()
 end
 
 function update_start()
-	if btnp(❎) then 
-		start_game() 
+	if not btn(❎) then
+		btnreleased=true
 	end
+	
+	if btnreleased then
+		if btnp(❎) then 
+			start_game()
+			btnreleased=false
+		end
+	end
+
 	animate_stars()
 end
 
 function update_over()
-	if btnp(❎) then
-		game.mode = "start"
+	if not btn(❎) then
+		btnreleased=true
+	end
+	
+	if btnreleased then
+		if btnp(❎) then
+			game.mode = "start"
+			btnreleased=false
+		end
 	end
 end
 
---[[
-project:
-
-i don't think it's possible
-but i'd like to see if i can
-figure out a way to make a
-generic enough function for
-updating the movement of an
-object as well...
-
-i may need to trim fat
-in order to do so though.
-we'll see... 
-
-my goal is to be able to just
-have the one function
-
-update_objects(ship)
-update_objects(bullets)
-update_objects(enemies)
-
-that might be asking too much.
-but chew on it for a bit.
---]]
+function update_victory()
+	if not btn(❎) then
+		btnreleased=true
+	end
+	
+	if btnreleased then
+		if btnp(❎) then
+			game.mode = "start"
+			btnreleased=false
+		end
+	end
+end
 
 function update_bullets(object)
 	for bullet in all(object) do
@@ -503,6 +520,15 @@ function update_enemies(object)
 	end
 end
 
+function update_wavetext()
+	update_game()
+	game.wavetime -= 1
+	
+	if game.wavetime <= 0 then
+		game.mode = "game"
+		spawn_wave(game.wave)
+	end
+end
 
 -->8
 -- draw functions
@@ -570,6 +596,13 @@ function draw_over()
 	cls(0)
 	star_field() --generate stars
 	print("game over", 45, 50, 8)
+	print("press ❎ to restart", 27, 80, blink())
+end
+
+function draw_victory()
+	cls(3)
+	star_field() --generate stars
+	print("a winner is you!", 35, 50, 8)
 	print("press ❎ to restart", 27, 80, blink())
 end
 
@@ -772,6 +805,28 @@ function particle_system()
 	 		del(particles, my_particle)
 	 	end
 	 end
+	end
+end
+
+function draw_wavetext()
+	draw_game()
+	print("wave "..game.wave, 52, 40, blink())
+end
+-->8
+-- waves and enemies
+
+function spawn_wave(wave)
+	spawn_enemy()
+end
+
+function next_wave()
+	game.wave += 1
+	
+	if game.wave > 4 then
+		game.mode = "victory"
+	else
+		game.mode = "wavetext"
+		game.wavetime = 80
 	end
 end
 __gfx__
