@@ -16,14 +16,9 @@ todo:
 
 function _init()
 	cls(0)
-	-- create stars for start
-	generate_stars()
-	game = {mode="start"}
+	start_screen()
 	blink_timer = 0
 	t = 0
-	
-	-- make a title screen jingle
-	music(2, 2000)
 end
 
 function _update()
@@ -62,7 +57,14 @@ function animate_thrusters()
 	end
 end
 
+function start_screen()
+	generate_stars()
+	game = {mode = "start"}
+	music(1, 500)
+end
+
 function start_game()
+	music(-1, 1000)
 	cls(1)
 	-- ship object (player)
 	ship = {}
@@ -86,9 +88,6 @@ function start_game()
 	shockwaves = {}
 	smol_waves = {}
 	particles = {}
-	
-	-- game loop jingle
-	
 	
 	t=0
 
@@ -315,30 +314,8 @@ function smol_spark(sx, sy)
 	--end
 end
 
---[[
-project:
 
-figure out how to overlap a
-second particle system that
-just does pset particles
-to simulate shrapnel from each
-individual particle we created
 
-project 2:
-figure out the best way to
-handle the particle system
-for the player, but go with a
-blue / white scheme for color
-
-project 3:
-considering the new shockwave
-system, is there a way to 
-handle it within the same
-particle system, or would it
-need to stay separate due to the
-difference in movement rather
-than radius gain.
---]]
 -->8
 -- update functions
 
@@ -454,6 +431,7 @@ function update_game()
 	animate_stars()
 	if game.lives <= 0 then
 		game.mode = "over"
+		music(6)
 	end
 end
 
@@ -465,7 +443,6 @@ function update_start()
 	if btnreleased then
 		if btnp(❎) then 
 			start_game()
-			music(-1, 2000)
 			btnreleased=false
 		end
 	end
@@ -480,7 +457,7 @@ function update_over()
 	
 	if btnreleased then
 		if btnp(❎) then
-			game.mode = "start"
+			start_screen()
 			btnreleased=false
 		end
 	end
@@ -493,7 +470,7 @@ function update_victory()
 	
 	if btnreleased then
 		if btnp(❎) then
-			game.mode = "start"
+			start_screen()
 			btnreleased=false
 		end
 	end
@@ -607,7 +584,7 @@ end
 function draw_victory()
 	cls(3)
 	star_field() --generate stars
-	print("a winner is you!", 35, 50, 8)
+	print("a winner is you!", 34, 50, 7)
 	print("press ❎ to restart", 27, 80, blink())
 end
 
@@ -829,6 +806,7 @@ function next_wave()
 	
 	if game.wave > 4 then
 		game.mode = "victory"
+		music(4)
 	else
 		game.mode = "wavetext"
 		game.wavetime = 80
