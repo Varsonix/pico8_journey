@@ -6,9 +6,7 @@ __lua__
 todo:
 -------------------
 - nicer screens
-- flexible collision detection
 
-- winning music
 - even more enemies
 - enemy behavior
 - where do enemies spawn?
@@ -373,11 +371,13 @@ function update_game()
 	end
 	timer -= 1
 	
+
 	-- move ship
-	-- todo: remember to fix
-	-- sprite issue with left/right
 	ship.x += ship.spdx
 	ship.y += ship.spdy
+			-- clamping for edges (advanced)
+	ship.x = mid(0, ship.x, 120)
+	ship.y = mid(0, ship.y, 120)
 	
 	-- move bullets
  update_bullets(bullets)
@@ -432,9 +432,7 @@ function update_game()
 		ship.muzzle -= 2
 	end
 	
-	-- clamping for edges (advanced)
-	ship.posx = mid(0, ship.posx, 120)
-	ship.posy = mid(0, ship.posy, 120)
+
 
 	-- animate stars
 	animate_stars()
@@ -510,15 +508,17 @@ end
 
 function update_enemies(object)
 	for my_enemy in all(object) do
-		my_enemy.y += 1
-		my_enemy.aniframe += 0.4
+		-- enemy mission
+		do_enemy(my_enemy)
 		
+		-- enemy animation
+		my_enemy.aniframe += 0.4
 		if flr(my_enemy.aniframe) > #my_enemy.ani then
 			my_enemy.aniframe = 1
 		end
-		
 		my_enemy.spr = my_enemy.ani[flr(my_enemy.aniframe)]
-		-- memory logic
+		
+		-- leave screen logic
 		if my_enemy.y > 128 then
 			del(object, my_enemy)
 		end
@@ -823,13 +823,43 @@ end
 
 function spawn_wave(wave)
 	if wave == 1 then
-		spawn_enemy(1)
+		place_enemies({
+			{0,1,1,1,1,1,1,1,1,0},
+			{0,1,1,1,1,1,1,1,1,0},
+			{0,1,1,1,1,1,1,1,1,0},
+			{0,1,1,1,1,1,1,1,1,0}
+		})
 	elseif wave == 2 then
-		spawn_enemy(2)
+		place_enemies({
+			{1,1,2,2,1,1,2,2,1,1},
+			{1,1,2,2,1,1,2,2,1,1},
+			{1,1,2,2,2,2,2,2,1,1},
+			{1,1,2,2,2,2,2,2,1,1}
+		})
 	elseif wave == 3 then
-		spawn_enemy(3)
+		place_enemies({
+			{3,3,2,2,2,2,2,2,3,3},
+			{3,3,2,2,2,2,2,2,3,3},
+			{3,3,1,1,1,1,1,1,3,3},
+			{3,3,1,1,0,0,1,1,3,3}
+		})
 	elseif wave == 4 then
-		spawn_enemy(4)
+		place_enemies({
+			{0,0,0,0,0,0,0,0,0,0},
+			{0,0,0,0,4,0,0,0,0,0},
+			{0,0,0,0,0,0,0,0,0,0},
+			{0,0,0,0,0,0,0,0,0,0}
+		})
+	end
+end
+
+function place_enemies(en_array)
+	for y = 1, 4 do
+		for x = 1, 10 do
+			if en_array[y][x] != 0 then
+				spawn_enemy(en_array[y][x], (x * 12) - 6, 4 + y * 12)
+			end
+		end
 	end
 end
 
@@ -850,30 +880,35 @@ function next_wave()
 	end
 end
 
-function spawn_enemy(en_type)
+function spawn_enemy(en_type, enx, eny)
 	local	enemy = make_spr()
-	enemy.x = rnd(120)
-	enemy.y = -8
+	enemy.x = enx
+	enemy.y = eny - 64
+	
+	enemy.posx = enx
+	enemy.posy = eny
+	
+	enemy.mission = "flyin"
 	
 	if en_type == nil or en_type == 1 then
 		-- green alien
 		enemy.spr = 20
-		enemy.health = 3
+		enemy.health = 1
 		enemy.ani = {20, 21, 22, 23}
 	elseif en_type == 2 then
 		-- red flame guy
 		enemy.spr = 148
-		enemy.health = 3
+		enemy.health = 1
 		enemy.ani = {148, 149}
 	elseif en_type == 3 then
 		-- spinning ship
 		enemy.spr = 184
-		enemy.health = 3
+		enemy.health = 1
 		enemy.ani = {184, 185, 186, 187}
 	elseif en_type == 4 then
 	 -- boss
 	 enemy.spr = 208
-		enemy.health = 3
+		enemy.health = 1
 		enemy.ani = {208, 210}
 		enemy.sprw = 2
 		enemy.sprh = 2
@@ -881,6 +916,23 @@ function spawn_enemy(en_type)
 		enemy.colh = 16
 	end
 	add(enemies, enemy)
+end
+-->8
+-- enemy behavior --
+
+function do_enemy(my_enemy)
+	if my_enemy.mission == "flyin" then
+	-- flying in
+		my_enemy.y += 1
+
+		if my_enemy.y >= my_enemy.posy then
+			my_enemy.mission = "protecc"
+		end
+	elseif my_enemy.mission == "protecc" then
+	-- staying put
+	elseif my_enemy.mission == "attacc" then
+	-- attacc
+	end
 end
 __gfx__
 00000000000550000005500000055000000000000000000000000000000000000000000000000000000000000000000000000000088008800880088000000000
