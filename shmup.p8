@@ -1,6 +1,8 @@
 pico-8 cartridge // http://www.pico-8.com
 version 42
 __lua__
+--initiliization
+
 --[[
 
 todo:
@@ -435,6 +437,9 @@ function update_game()
 		lockout = t + 30
 		music(6)
 	end
+	
+	-- picking
+	picking()
 	
 	if game.mode == "game" and #enemies == 0 then
 		next_wave()
@@ -877,7 +882,7 @@ end
 
 function spawn_enemy(en_type, enx, eny, enwait)
 	local	enemy = make_spr()
-	enemy.x = enx
+	enemy.x = enx* 1.25 - 16
 	enemy.y = eny - 64
 	
 	enemy.posx = enx
@@ -925,6 +930,7 @@ function do_enemy(my_enemy)
 	if my_enemy.mission == "flyin" then
 	-- flying in
 		my_enemy.y += (my_enemy.posy - my_enemy.y) / 7
+		my_enemy.x += (my_enemy.posx - my_enemy.x) / 7
 		
 		-- x += (targetx-x)/n
 
@@ -934,10 +940,29 @@ function do_enemy(my_enemy)
 		end
 	elseif my_enemy.mission == "protecc" then
 	-- staying put
-		--my_enemy.y += 10
+	
 	elseif my_enemy.mission == "attacc" then
 	-- attacc
+		
+		my_enemy.y += 1.7
 	end
+end
+
+function picking()
+	if game.mode != "game" then
+		return
+	end
+	
+	-- usage of modulo for timing
+	
+	if t%60 == 0 then
+			local my_enemy = rnd(enemies)
+	
+		if my_enemy.mission == "protecc" then
+			my_enemy.mission = "attacc"
+		end
+	end
+
 end
 __gfx__
 00000000000550000005500000055000000000000000000000000000000000000000000000000000000000000000000000000000088008800880088000000000
