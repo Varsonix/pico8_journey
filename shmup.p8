@@ -6,14 +6,8 @@ __lua__
 todo:
 -------------------
 - nicer screens
-
-- even more enemies
 - enemy behavior
-- where do enemies spawn?
 - enemy bullets
-
-- doggie zone:
-- more enemies - implement them
 
 ]]--
 
@@ -822,6 +816,7 @@ end
 -- waves and enemies
 
 function spawn_wave(wave)
+	sfx(28)
 	if wave == 1 then
 		place_enemies({
 			{0,1,1,1,1,1,1,1,1,0},
@@ -857,7 +852,7 @@ function place_enemies(en_array)
 	for y = 1, 4 do
 		for x = 1, 10 do
 			if en_array[y][x] != 0 then
-				spawn_enemy(en_array[y][x], (x * 12) - 6, 4 + y * 12)
+				spawn_enemy(en_array[y][x], (x * 12) - 6, 4 + y * 12, x*3)
 			end
 		end
 	end
@@ -880,13 +875,15 @@ function next_wave()
 	end
 end
 
-function spawn_enemy(en_type, enx, eny)
+function spawn_enemy(en_type, enx, eny, enwait)
 	local	enemy = make_spr()
 	enemy.x = enx
 	enemy.y = eny - 64
 	
 	enemy.posx = enx
 	enemy.posy = eny
+	
+	enemy.wait = enwait
 	
 	enemy.mission = "flyin"
 	
@@ -921,15 +918,23 @@ end
 -- enemy behavior --
 
 function do_enemy(my_enemy)
+	if my_enemy.wait > 0 then
+		my_enemy.wait -= 1
+		return
+	end
 	if my_enemy.mission == "flyin" then
 	-- flying in
-		my_enemy.y += 1
+		my_enemy.y += (my_enemy.posy - my_enemy.y) / 7
+		
+		-- x += (targetx-x)/n
 
-		if my_enemy.y >= my_enemy.posy then
+		if abs(my_enemy.y - my_enemy.posy) < 0.5 then
+			my_enemy.y = my_enemy.posy
 			my_enemy.mission = "protecc"
 		end
 	elseif my_enemy.mission == "protecc" then
 	-- staying put
+		--my_enemy.y += 10
 	elseif my_enemy.mission == "attacc" then
 	-- attacc
 	end
@@ -1213,6 +1218,7 @@ __sfx__
 510c0000143151931520325143251931520315163251932516315183151932516325183151931516325183251b3151e315183251b3251e315183151b3251e325183151b3151d325183251b3151d315183251b325
 010c00000175001750017500175001750017500175001750037500375003750037500375003750037500375006750067500675006750067500675006750067500575005750057500575005750057500575005750
 010c00001d55024500245001b55519555245001e550245002450029500165502450024500245001e550245001e55024500245001d5551b555245001d5502450024500295001855024500275002a5002950028500
+150500003e5453c5453a5553855537555355553455532555305452e5452d5452b54529545275352553524535225351f5351d5351b53519535175351553513535115250f5250d5250a51508515065150451502515
 __music__
 04 04050644
 00 07084749
