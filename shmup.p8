@@ -315,6 +315,7 @@ function make_spr()
 	sx = 0,
 	sy = 0,
 	flash = 0,
+	shake = 0,
 	aniframe=1,
 	spr = 0,
 	sprw = 1,
@@ -514,15 +515,17 @@ function update_enemies(object)
 		do_enemy(my_enemy)
 		
 		-- enemy animation
-		my_enemy.aniframe += 0.4
+		my_enemy.aniframe += my_enemy.anispd
 		if flr(my_enemy.aniframe) > #my_enemy.ani then
 			my_enemy.aniframe = 1
 		end
 		my_enemy.spr = my_enemy.ani[flr(my_enemy.aniframe)]
 		
 		-- leave screen logic
-		if my_enemy.y > 128 then
-			del(object, my_enemy)
+		if my_enemy.mission != "flyin" then
+			if my_enemy.y > 128 or my_enemy.x < -8 or my_enemy.x > 128 then
+				del(object, my_enemy)
+			end
 		end
 	end
 end
@@ -640,7 +643,14 @@ function draw_ship(ship)
 end
 
 function draw_sprite(object)
-	spr(object.spr, object.x, object.y, object.sprw, object.sprh)
+	local sprx = object.x
+	local spry = object.y
+	
+	if object.shake > 0 then
+		object.shake -= 1
+		sprx += abs(sin(t/3))
+	end
+	spr(object.spr, sprx, spry, object.sprw, object.sprh)
 end
 
 --|-- token differences --|
@@ -846,10 +856,10 @@ function spawn_wave(wave)
 	elseif wave == 3 then
 		game.attack_freq = 60
 		place_enemies({
-			{3,3,2,2,2,2,2,2,3,3},
-			{3,3,2,2,2,2,2,2,3,3},
-			{3,3,1,1,1,1,1,1,3,3},
-			{3,3,1,1,0,0,1,1,3,3}
+			{3,3,0,2,2,2,2,0,3,3},
+			{3,3,0,2,2,2,2,0,3,3},
+			{3,3,0,1,1,1,1,0,3,3},
+			{3,3,0,1,0,0,1,0,3,3}
 		})
 	elseif wave == 4 then
 		game.attack_freq = 60
@@ -901,6 +911,7 @@ function spawn_enemy(en_type, enx, eny, enwait)
 	
 	enemy.wait = enwait
 	
+	enemy.anispd = 0.4
 	enemy.mission = "flyin"
 	
 	if en_type == nil or en_type == 1 then
@@ -980,8 +991,26 @@ function do_enemy(my_enemy)
 			move(my_enemy)
 		elseif my_enemy.en_type == 3 then
 			-- spinny ship
+			if my_enemy.sx == 0 then
+				-- flying down
+				my_enemy.sy = 2
+				if ship.y <= my_enemy.y then
+					my_enemy.sy = 0
+					if ship.x < my_enemy.x then
+						my_enemy.sx = -2
+					else
+						my_enemy.sx = 2
+					end
+				end
+
+			end
+			move(my_enemy)
 		elseif my_enemy.en_type == 4 then
 		 -- gold guy
+		 my_enemy.sy = 0.35
+		 if my_enemy.sy > 110 then
+		 	my_enemy.sy = 1
+   end
 		end
 	end
 end
@@ -1004,6 +1033,9 @@ function picking()
 	
 		if my_enemy.mission == "protecc" then
 			my_enemy.mission = "attacc"
+			my_enemy.anispd *= 3
+			my_enemy.wait = 60
+			my_enemy.shake = 60
 		end
 	end
 
