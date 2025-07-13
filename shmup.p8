@@ -100,7 +100,8 @@ function start_game()
 		invuln = 0,
 		bombs = 3,
 		wave = 0,
-		wavetime = 80
+		wavetime = 80,
+		attack_freq = 60
 	}
 	
 	next_wave()
@@ -311,6 +312,8 @@ function make_spr()
 	local	my_spr = {
 	x = 0,
 	y = 0,
+	sx = 0,
+	sy = 0,
 	flash = 0,
 	aniframe=1,
 	spr = 0,
@@ -822,7 +825,10 @@ end
 
 function spawn_wave(wave)
 	sfx(28)
+	
+	
 	if wave == 1 then
+		game.attack_freq = 60
 		place_enemies({
 			{0,1,1,1,1,1,1,1,1,0},
 			{0,1,1,1,1,1,1,1,1,0},
@@ -830,6 +836,7 @@ function spawn_wave(wave)
 			{0,1,1,1,1,1,1,1,1,0}
 		})
 	elseif wave == 2 then
+		game.attack_freq = 60
 		place_enemies({
 			{1,1,2,2,1,1,2,2,1,1},
 			{1,1,2,2,1,1,2,2,1,1},
@@ -837,6 +844,7 @@ function spawn_wave(wave)
 			{1,1,2,2,2,2,2,2,1,1}
 		})
 	elseif wave == 3 then
+		game.attack_freq = 60
 		place_enemies({
 			{3,3,2,2,2,2,2,2,3,3},
 			{3,3,2,2,2,2,2,2,3,3},
@@ -844,6 +852,7 @@ function spawn_wave(wave)
 			{3,3,1,1,0,0,1,1,3,3}
 		})
 	elseif wave == 4 then
+		game.attack_freq = 60
 		place_enemies({
 			{0,0,0,0,0,0,0,0,0,0},
 			{0,0,0,0,4,0,0,0,0,0},
@@ -888,6 +897,8 @@ function spawn_enemy(en_type, enx, eny, enwait)
 	enemy.posx = enx
 	enemy.posy = eny
 	
+	enemy.en_type = en_type
+	
 	enemy.wait = enwait
 	
 	enemy.mission = "flyin"
@@ -895,7 +906,7 @@ function spawn_enemy(en_type, enx, eny, enwait)
 	if en_type == nil or en_type == 1 then
 		-- green alien
 		enemy.spr = 20
-		enemy.health = 1
+		enemy.health = 2
 		enemy.ani = {20, 21, 22, 23}
 	elseif en_type == 2 then
 		-- red flame guy
@@ -943,8 +954,35 @@ function do_enemy(my_enemy)
 	
 	elseif my_enemy.mission == "attacc" then
 	-- attacc
-		
-		my_enemy.y += 1.7
+		if my_enemy.en_type == 1 then
+			-- green guy
+			my_enemy.sy = 1.7
+			my_enemy.sx = sin(t/45)
+			-- slight movement tweaks
+			if my_enemy.x < 32 then 
+				my_enemy.sx += 1 - (my_enemy.x / 32)
+			end
+			if my_enemy.x > 88 then 
+				my_enemy.sx -= (my_enemy.x - 88)/32
+			end
+			move(my_enemy)
+		elseif my_enemy.en_type == 2 then
+			-- red guy
+			my_enemy.sy = 2.5
+			my_enemy.sx = sin(t/20 )
+			-- slight movement tweaks
+			if my_enemy.x < 32 then 
+				my_enemy.sx += 1 - (my_enemy.x / 32)
+			end
+			if my_enemy.x > 88 then 
+				my_enemy.sx -= (my_enemy.x - 88)/32
+			end
+			move(my_enemy)
+		elseif my_enemy.en_type == 3 then
+			-- spinny ship
+		elseif my_enemy.en_type == 4 then
+		 -- gold guy
+		end
 	end
 end
 
@@ -955,14 +993,26 @@ function picking()
 	
 	-- usage of modulo for timing
 	
-	if t%60 == 0 then
-			local my_enemy = rnd(enemies)
+	if t%game.attack_freq == 0 then
+		
+		local max_num = min(10, #enemies)
+		local my_index = flr(rnd(max_num))
+		my_index = #enemies - my_index
+		
+		
+		local my_enemy = enemies[my_index]
 	
 		if my_enemy.mission == "protecc" then
 			my_enemy.mission = "attacc"
 		end
 	end
 
+end
+
+-- universal movement function
+function move(object)
+	object.x += object.sx
+	object.y += object.sy
 end
 __gfx__
 00000000000550000005500000055000000000000000000000000000000000000000000000000000000000000000000000000000088008800880088000000000
